@@ -161,6 +161,8 @@ func sendMsgReadIndexResponse(r *raft, m pb.Message) {
       // ...
    }
 }
+```
+```Go
 func (ro *readOnly) addRequest(index uint64, m pb.Message) {
    s := string(m.Entries[0].Data)
    if _, ok := ro.pendingReadIndex[s]; ok {
@@ -203,6 +205,8 @@ case pb.MsgHeartbeatResp:
          r.send(resp)
       }
    }
+```
+```Go
 func (ro *readOnly) advance(m pb.Message) []*readIndexStatus {
    var (
       i     int
