@@ -183,7 +183,7 @@ func (ro *readOnly) recvAck(id uint64, context []byte) map[uint64]bool {
 }
 ```
 
-follower 收到带有 ctx 的消息后，确认并返回给 leader ，所以 leader 在处理 heartbeat response 时需要对 readOnly 进行推进
+follower 收到带有 ctx 的消息后，确认并返回给 leader ，所以 leader 在处理 heartbeat response 时需要对 readOnly 进行推进：
 
 ```Go
 case pb.MsgHeartbeatResp:
@@ -248,7 +248,7 @@ func (ro *readOnly) advance(m pb.Message) []*readIndexStatus {
 >
 > 不会有问题。以我个人见解如果现在能确认身份为 leader 就能确认之前仍是 leader ，所以是可以对之前的 request 进行操作的。
 
-最后将 ReadState 放入本地待上层应用获取
+最后将 ReadState 放入本地待上层应用获取：
 
 ```Go
 func (r *raft) responseToReadIndexReq(req pb.Message, readIndex uint64) pb.Message {
