@@ -14,9 +14,9 @@
 
 磁盘由许多个盘面（platter）组成，每个盘面上对其进行**逻辑**上的划分：磁道（track）和扇区（sector）。我们可以对每个 track 和 sector 进行编号：1 号 track 、2 号 track ，1 号 sector 、2 号 sector 等。track 和 sector 交错形成部分，称之为块（block），用 `(track id, sector id)` 对 block 进行唯一定位（比如 block(1, 2) 代表 1 号磁道，2 号扇区的 block ）。每块 block 的大小通常为 **512bytes** （这与磁盘生产厂家有关，但普遍为这个值）。所以一个 block 的地址范围为 0~511 。
 
-![img](https://yr9uwep0e4.feishu.cn/space/api/box/stream/download/asynccode/?code=YWZmM2ZmYzczNzg1NWU0YTNiOWMzY2I3OGY3MmRiNWJfN2szRWNOQ0FseUxNRXdKTFBqY2dmN2NLZGJWeGVKT2dfVG9rZW46Ym94Y242NGpHQ1JjSGpHQUxtdVVMMHE0eFFoXzE2NTkyMzQyODg6MTY1OTIzNzg4OF9WNA)
+![img](../img/img1.PNG)
 
-![img](https://yr9uwep0e4.feishu.cn/space/api/box/stream/download/asynccode/?code=NzY4MzgzYTVkOTcxNmNmY2I4NGZjMDgxNmIxNjMzNzBfU09YbjdsQnRKaDdrWk9nM29GeUlIZ204SGd6aHc0M2hfVG9rZW46Ym94Y25maEg0NVhVTWk2VzlxRHhvR0EzTUhkXzE2NTkyMzQyODg6MTY1OTIzNzg4OF9WNA)
+![img](../img/img2.PNG)
 
 
 
@@ -38,7 +38,7 @@
 
 假设有如下一张表，包含 100 个 record ，每个 record 占用 128bytes 。如何在磁盘存放这张表呢？
 
-![img](https://yr9uwep0e4.feishu.cn/space/api/box/stream/download/asynccode/?code=OWY2NWJiMTE4ZDY0MGJlMjk2NGE3MmNkMDZkOWNmYTZfeE1ObFBuWjBuWGlNc2VIbWJYRWFIUFMzR3NRRHQ1WEtfVG9rZW46Ym94Y25IejdwckRCS1Ziamg2cFZzTWVEek9jXzE2NTkyMzQyODg6MTY1OTIzNzg4OF9WNA)
+![img](../img/img3.PNG)
 
 由于一个 record 占用 128bytes ，那么一个 block 就可以存放 512 / 128 = 4 record 。那这 100 个 record 就需要 25 个 block 来存放。如果想读取某个 record ，那么需要平均读取 O(N) 个 block （N: block num），在这里即 25 个 block 。如果有 100w 个 record ，就需要平均读取 25w 个 block 。
 
@@ -46,7 +46,7 @@
 
 这太糟糕了！所以需要通过额外的存储来换取更高的效率——索引。我们为其加上一层索引：
 
-![img](https://yr9uwep0e4.feishu.cn/space/api/box/stream/download/asynccode/?code=ODIyNzViOGQ4Yjk4MTY4ODJiNDRkOTJhMzE5YmVjOTNfUjlDclRHb0hmbVZRSUs5WmZkQjZPTVJONWhLUnpnNmdfVG9rZW46Ym94Y250TEl6QkxheksybU9TaHJCbFdGTXhnXzE2NTkyMzQyODg6MTY1OTIzNzg4OF9WNA)
+![img](../img/img4.PNG)
 
 假设一个索引 record 占用 16bytes ，那么索引占用了 100 * 16 = 1600bytes ，需要 1600 / 512 ~= 4 block 来存放。通过索引，我们现在最多需要访问 4 index blocks + 1 data block 。比原来的 25 足足少了 5 倍，即访问的效率大大提高。
 
@@ -54,7 +54,7 @@
 
 但是还是存在一些问题：如果数据量越来越大，索引项也会越来越多，那么访问的效率就会不断下降。所以我们可以建索引的索引：二级索引可以保存每个一级索引 block 的第一条记录。所以现在访问数据最多需要 1 secondary index block + 1 primary index block + 1 data block 。这就是多级索引（multi-index）的思想。
 
-![img](https://yr9uwep0e4.feishu.cn/space/api/box/stream/download/asynccode/?code=NTE2NjRlN2Y3YmZkODRkNjA1YjM5ZDMzMzk3MmU2MmFfM1JISG1KNVNRN1E2NGVCbkx0RTJPVlhqWllQU3Q0azZfVG9rZW46Ym94Y25sVDRGT2RwanRQOUZha3RsUTZSYmFoXzE2NTkyMzQyODg6MTY1OTIzNzg4OF9WNA)
+![img](../img/img5.PNG)
 
 
 
@@ -113,7 +113,7 @@ DELETE FROM posts WHERE author = 'xxx'
 
 对与 B Tree 来说，确实可以做到 range scan ，但是**一次 range scan 会带来很多次随机 I/O** ：
 
-![img](https://yr9uwep0e4.feishu.cn/space/api/box/stream/download/asynccode/?code=ZTIwYzI4MjQwMWIyOTQ4NDYyYzM3MmNmMDI5NGVmNGFfekVxcE1oaU02ZnpxRXNlN1FUazU0Q2puWUYxNkRZYzBfVG9rZW46Ym94Y25HVEZ5MGJyME1rdkF1WndsVXNwbmRlXzE2NTkyMzQyODg6MTY1OTIzNzg4OF9WNA)
+![img](../img/img6.png)
 
 如上图所示，如果需要查询 `> 4 && < 9` 的数据，不考虑任何优化，需要经过 4 次随机 I/O 才能做到：
 
